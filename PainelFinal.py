@@ -52,7 +52,7 @@ st.dataframe(df_filtrado.head(50))
 
 st.subheader("Evolução de Preço")
 
-periodo = st.radio(("3 meses", "6 meses", "12 meses"), horizontal = True)
+periodo = st.radio("", ("3 meses", "6 meses", "12 meses"), horizontal = True)
 
 if periodo == "3 meses":
     cutoff = pd.Timestamp.today().normalize() - pd.DateOffset(months=3)
