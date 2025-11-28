@@ -50,9 +50,9 @@ st.dataframe(df_recentes, use_container_width = True)
 st.subheader("Base Completa")
 st.dataframe(df_filtrado.head(50))
 
-st.subheader("Evolução de Preço (média mensal)")
+st.subheader("Evolução de Preço")
 
-periodo = st.radio("Selecione o período:",("3 meses", "6 meses", "12 meses"), horizontal = True)
+periodo = st.radio("Selecione o período:" ("3 meses", "6 meses", "12 meses"), horizontal = True)
 
 if periodo == "3 meses":
     cutoff = pd.Timestamp.today().normalize() - pd.DateOffset(months=3)
@@ -76,7 +76,7 @@ if filtro_insumo != "Todos":
             preco_final = df_tmp["VALOR_NUM"].iloc[-1]
             variacao = ((preco_final - preco_inicial) / preco_inicial) * 100
 
-            st.subheader("Variação de preço")
+            st.subheader("Variação")
             st.metric(
                 label = f"Variação nos últimos {periodo}",
                 value = f"{preco_final:.2f}",
@@ -88,7 +88,7 @@ if filtro_insumo != "Todos":
         df_pivot = df_mes.pivot(index = "DATACOMPRA", columns = "ESTADO", values = "VALOR_NUM").sort_index()
         df_pivot.index = df_pivot.index.strftime("%Y-%m")
 
-        fig = px.line(df_mes, x = "DATACOMPRA", y = "VALOR_NUM", color = "ESTADO", markers = True, title = "Evolução de Preço (média mensal – últimos 12 meses)")
+        fig = px.line(df_mes, x = "DATACOMPRA", y = "VALOR_NUM", color = "ESTADO", markers = True, title = "Média Mensal")
         
         fig.update_xaxes(tickformat = "%Y-%m", dtick = "M1")
       
