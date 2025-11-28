@@ -52,7 +52,7 @@ st.dataframe(df_filtrado.head(50))
 
 st.subheader("Evolução de Preço")
 
-periodo = st.radio("Selecione o período:" ("3 meses", "6 meses", "12 meses"), horizontal = True)
+periodo = st.radio("Selecione o período:", ("3 meses", "6 meses", "12 meses"), horizontal = True)
 
 if periodo == "3 meses":
     cutoff = pd.Timestamp.today().normalize() - pd.DateOffset(months=3)
@@ -68,7 +68,7 @@ if filtro_insumo != "Todos":
     df_graf = df_graf[df_graf["DATACOMPRA"] >= cutoff]
     
     if df_graf.empty:
-        st.info("Não há dados para esse insumo.")
+        st.info(f"Não há dados nos últimos {periodo} para esse insumo.")
     else:
         df_tmp = df_graf.sort_values("DATACOMPRA")
         if len(df_tmp) >= 2:
@@ -76,7 +76,7 @@ if filtro_insumo != "Todos":
             preco_final = df_tmp["VALOR_NUM"].iloc[-1]
             variacao = ((preco_final - preco_inicial) / preco_inicial) * 100
 
-            st.subheader("Variação")
+            st.subheader("Variação de Preço")
             st.metric(
                 label = f"Variação nos últimos {periodo}",
                 value = f"{preco_final:.2f}",
@@ -88,7 +88,7 @@ if filtro_insumo != "Todos":
         df_pivot = df_mes.pivot(index = "DATACOMPRA", columns = "ESTADO", values = "VALOR_NUM").sort_index()
         df_pivot.index = df_pivot.index.strftime("%Y-%m")
 
-        fig = px.line(df_mes, x = "DATACOMPRA", y = "VALOR_NUM", color = "ESTADO", markers = True, title = "Média Mensal")
+        fig = px.line(df_mes, x = "DATACOMPRA", y = "VALOR_NUM", color = "ESTADO", markers = True, title=f"Evolução de Preço – Média Mensal ({periodo})")
         
         fig.update_xaxes(tickformat = "%Y-%m", dtick = "M1")
       
