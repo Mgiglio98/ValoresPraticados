@@ -76,9 +76,8 @@ if filtro_insumo != "Todos":
             preco_final = df_tmp["VALOR_NUM"].iloc[-1]
             variacao = ((preco_final - preco_inicial) / preco_inicial) * 100
 
-            st.subheader("Variação de Preço")
             st.metric(
-                label = f"Variação nos últimos {periodo}",
+                title = f"Variação de Preço nos últimos {periodo}",
                 value = f"{preco_final:.2f}",
                 delta = f"{variacao:.2f}%")
         else:
@@ -88,7 +87,7 @@ if filtro_insumo != "Todos":
         df_pivot = df_mes.pivot(index = "DATACOMPRA", columns = "ESTADO", values = "VALOR_NUM").sort_index()
         df_pivot.index = df_pivot.index.strftime("%Y-%m")
 
-        fig = px.line(df_mes, x = "DATACOMPRA", y = "VALOR_NUM", color = "ESTADO", markers = True, title=f"Evolução de Preço – Média Mensal ({periodo})")
+        fig = px.line(df_mes, x = "DATACOMPRA", y = "VALOR_NUM", color = "ESTADO", markers = True, title = f"Evolução de Preço – Média Mensal ({periodo})")
         
         fig.update_xaxes(tickformat = "%Y-%m", dtick = "M1")
       
