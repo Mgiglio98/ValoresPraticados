@@ -72,17 +72,33 @@ if filtro_insumo != "Todos":
     else:
         df_mes = (df_graf.groupby([pd.Grouper(key = "DATACOMPRA", freq = "MS"), "ESTADO"])["VALOR_NUM"].mean().reset_index().sort_values("DATACOMPRA"))
         df_tmp = df_mes.sort_values("DATACOMPRA")
-        if len(df_tmp) >= 2:
-            preco_inicial = df_tmp["VALOR_NUM"].iloc[0]
-            preco_final = df_tmp["VALOR_NUM"].iloc[-1]
-            variacao = ((preco_final - preco_inicial) / preco_inicial) * 100
+        ufs_disponiveis = df_mes["ESTADO"].unique().tolist()
 
-            st.metric(
-                label = f"Variação de Preço – Média do Período ({periodo})",
-                value = f"{preco_final:.2f}",
-                delta = f"{variacao:.2f}%")
-        else:
-            st.info("Não há dados suficientes para calcular a variação.")
+        st.write("")  # espaço
+        
+        cols = st.columns(len(ufs_disponiveis))  # 1 card por UF
+        
+        for idx, uf in enumerate(ufs_disponiveis):
+        
+            df_uf = df_mes[df_mes["ESTADO"] == uf].sort_values("DATACOMPRA")
+        
+            if len(df_uf) < 2:
+                cols[idx].metric(
+                    label=f"{uf} — Sem dados suficientes",
+                    value="–",
+                    delta="–"
+                )
+                continue
+        
+            preco_inicial = df_uf["VALOR_NUM"].iloc[0]
+            preco_final = df_uf["VALOR_NUM"].iloc[-1]
+            variacao = ((preco_final - preco_inicial) / preco_inicial) * 100
+        
+            cols[idx].metric(
+                label=f"Variação — {uf} ({periodo})",
+                value=f"{preco_final:.2f}",
+                delta=f"{variacao:.2f}%"
+            )
 
         #df_mes = (df_graf.groupby([pd.Grouper(key = "DATACOMPRA", freq = "MS"), "ESTADO"])["VALOR_NUM"].mean().reset_index().sort_values("DATACOMPRA"))
         df_pivot = df_mes.pivot(index = "DATACOMPRA", columns = "ESTADO", values = "VALOR_NUM").sort_index()
