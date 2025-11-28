@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from pathlib import Path
+import plotly.express as px
 
 st.set_page_config(page_title = "Painel de Preços - Suprimentos", layout = "wide")
 
@@ -65,6 +66,29 @@ if filtro_insumo != "Todos":
         df_pivot = df_mes.pivot(index = "DATACOMPRA", columns = "ESTADO", values = "VALOR_NUM").sort_index()
         df_pivot.index = df_pivot.index.strftime("%Y-%m")
 
-        st.line_chart(df_pivot)
+        fig = px.line(
+        df_mes,
+        x="DATACOMPRA",
+        y="VALOR_NUM",
+        color="ESTADO",
+        markers=True,
+        title="Evolução de Preço (média mensal – últimos 12 meses)")
+        
+        fig.update_xaxes(
+            tickformat="%Y-%m",
+            dtick="M1")
+      
+        fig.update_traces(
+            text=df_mes["VALOR_NUM"].round(2),
+            textposition="top center",
+            mode="lines+markers+text")
+    
+        fig.update_layout(
+            height=450,
+            legend_title_text="UF",
+            hovermode="x unified",)
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
 else:
     st.info("Selecione um insumo específico para visualizar a evolução de preços.")
