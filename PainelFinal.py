@@ -77,7 +77,7 @@ if filtro_insumo != "Todos":
             variacao = ((preco_final - preco_inicial) / preco_inicial) * 100
 
             st.metric(
-                title = f"Variação de Preço nos últimos {periodo}",
+                label = f"Variação de Preço nos últimos {periodo}",
                 value = f"{preco_final:.2f}",
                 delta = f"{variacao:.2f}%")
         else:
