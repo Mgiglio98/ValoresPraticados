@@ -45,7 +45,7 @@ if filtro_estado != "Todos":
 
 df_recentes = df_filtrado.drop_duplicates(subset = ["INSUMOCDG", "ESTADO"], keep = "first").reset_index(drop = True)
 
-st.subheader("Últimos valores Praticados")
+st.subheader("Últimos Valores Praticados")
 st.dataframe(df_recentes, use_container_width = True)
 st.subheader("Base Completa")
 st.dataframe(df_filtrado.head(50))
