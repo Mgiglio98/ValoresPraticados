@@ -50,46 +50,53 @@ st.dataframe(df_recentes, use_container_width = True)
 st.subheader("Base Completa")
 st.dataframe(df_filtrado.head(50))
 
-st.subheader("Evolução de Preço (média mensal – últimos 12 meses)")
+st.subheader("Evolução de Preço (média mensal)")
+
+periodo = st.radio("Selecione o período:",("3 meses", "6 meses", "12 meses"), horizontal = True)
+
+if periodo == "3 meses":
+    cutoff = pd.Timestamp.today().normalize() - pd.DateOffset(months=3)
+elif periodo == "6 meses":
+    cutoff = pd.Timestamp.today().normalize() - pd.DateOffset(months=6)
+else:
+    cutoff = pd.Timestamp.today().normalize() - pd.DateOffset(months=12)
 
 if filtro_insumo != "Todos":
+    
     df_graf = df_filtrado.copy()
     df_graf = df_graf[df_graf["VALOR_NUM"].notna()]
-    hoje = pd.Timestamp.today().normalize()
-    cutoff = hoje - pd.DateOffset(months=12)
     df_graf = df_graf[df_graf["DATACOMPRA"] >= cutoff]
-
+    
     if df_graf.empty:
-        st.info("Não há dados nos últimos 12 meses para esse insumo.")
+        st.info("Não há dados para esse insumo.")
     else:
+        df_tmp = df_graf.sort_values("DATACOMPRA")
+        if len(df_tmp) >= 2:
+            preco_inicial = df_tmp["VALOR_NUM"].iloc[0]
+            preco_final = df_tmp["VALOR_NUM"].iloc[-1]
+            variacao = ((preco_final - preco_inicial) / preco_inicial) * 100
+
+            st.subheader("Variação de preço")
+            st.metric(
+                label = f"Variação nos últimos {periodo}",
+                value = f"{preco_final:.2f}",
+                delta = f"{variacao:.2f}%")
+        else:
+            st.info("Não há dados suficientes para calcular a variação.")
+
         df_mes = (df_graf.groupby([pd.Grouper(key = "DATACOMPRA", freq = "M"), "ESTADO"])["VALOR_NUM"].mean().reset_index().sort_values("DATACOMPRA"))
         df_pivot = df_mes.pivot(index = "DATACOMPRA", columns = "ESTADO", values = "VALOR_NUM").sort_index()
         df_pivot.index = df_pivot.index.strftime("%Y-%m")
 
-        fig = px.line(
-            df_mes,
-            x="DATACOMPRA",
-            y="VALOR_NUM",
-            color="ESTADO",
-            markers=True,
-            title="Evolução de Preço (média mensal – últimos 12 meses)")
+        fig = px.line(df_mes, x = "DATACOMPRA", y = "VALOR_NUM", color = "ESTADO", markers = True, title = "Evolução de Preço (média mensal – últimos 12 meses)")
         
-        fig.update_xaxes(
-            tickformat="%Y-%m",
-            dtick="M1")
+        fig.update_xaxes(tickformat = "%Y-%m", dtick = "M1")
       
-        fig.update_traces(
-            mode="lines+markers+text",
-            texttemplate="%{y:.2f}",
-            textposition="top center")
+        fig.update_traces(mode = "lines+markers+text", texttemplate = "%{y:.2f}", textposition = "top center")
     
-        fig.update_layout(
-            height=450,
-            legend_title_text="UF",
-            hovermode="x unified",
-            yaxis_title="Preço médio (R$)")
+        fig.update_layout(height = 450, legend_title_text = "UF", hovermode = "x unified", yaxis_title = "Preço médio (R$)")
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width = True)
     
 else:
     st.info("Selecione um insumo específico para visualizar a evolução de preços.")
