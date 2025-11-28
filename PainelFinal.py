@@ -40,6 +40,9 @@ if filtro_insumo != "Todos":
 if filtro_estado != "Todos":
     df_filtrado = df_filtrado[df_filtrado["ESTADO"] == filtro_estado]
 
-st.subheader("Prévia da base filtrada")
+df_recentes = df_filtrado.drop_duplicates(subset = ["INSUMOCDG", "ESTADO"], keep = "first").reset_index(drop = True)
+
+st.subheader("Últimos valores Praticados")
+st.dataframe(df_recentes, use_container_width = True)
+st.subheader("Base Completa")
 st.dataframe(df_filtrado.head(50))
-st.write(f"Total de registros encontrados: **{len(df_filtrado)}**")
