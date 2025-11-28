@@ -10,10 +10,36 @@ def carregar_base():
     df = pd.read_excel(base_path, sheet_name=0)
     df.columns = [col.strip() for col in df.columns]
     df["DATACOMPRA"] = pd.to_datetime(df["DATACOMPRA"], errors = "coerce")
+    df = df.sort_values("DATACOMPRA", ascending=False)
     return df
 
 df_valores = carregar_base()
 
-st.subheader("Prévia da base de valores")
-st.dataframe(df_valores.head(20))
-st.write("Colunas:", list(df_valores.columns))
+st.title("Painel de Preços - Suprimentos")
+st.subheader("Filtros")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    filtro_insumo_cdg = st.selectbox("Código do Insumo", options = ["Todos"] + sorted(df_valores["INSUMOCDG"].dropna().unique().tolist()))
+
+with col2:
+    filtro_insumo = st.selectbox("Descrição do Insumo", options = ["Todos"] + sorted(df_valores["INSUMO"].dropna().unique().tolist()))
+
+with col3:
+    filtro_estado = st.selectbox("Estado", options = ["Todos"] + sorted(df_valores["ESTADO"].dropna().unique().tolist()))
+
+df_filtrado = df_valores.copy()
+
+if filtro_insumo_cdg != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["INSUMOCDG"] == filtro_insumo_cdg]
+
+if filtro_insumo != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["INSUMO"] == filtro_insumo]
+
+if filtro_estado != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["ESTADO"] == filtro_estado]
+
+st.subheader("Prévia da base filtrada")
+st.dataframe(df_filtrado.head(50))
+st.write(f"Total de registros encontrados: **{len(df_filtrado)}**")
