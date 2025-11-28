@@ -83,7 +83,7 @@ if filtro_insumo != "Todos":
         else:
             st.info("Não há dados suficientes para calcular a variação.")
 
-        df_mes = (df_graf.groupby([pd.Grouper(key = "DATACOMPRA", freq = "M"), "ESTADO"])["VALOR_NUM"].mean().reset_index().sort_values("DATACOMPRA"))
+        df_mes = (df_graf.groupby([pd.Grouper(key = "DATACOMPRA", freq = "MS"), "ESTADO"])["VALOR_NUM"].mean().reset_index().sort_values("DATACOMPRA"))
         df_pivot = df_mes.pivot(index = "DATACOMPRA", columns = "ESTADO", values = "VALOR_NUM").sort_index()
         df_pivot.index = df_pivot.index.strftime("%Y-%m")
 
