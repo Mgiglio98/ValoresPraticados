@@ -76,9 +76,8 @@ if filtro_insumo != "Todos":
             preco_final = df_tmp["VALOR_NUM"].iloc[-1]
             variacao = ((preco_final - preco_inicial) / preco_inicial) * 100
 
-            st.markdown(f"### Variação de Preço – Média do Período ({periodo})")
             st.metric(
-                label = "",
+                label = f"Variação de Preço – Média do Período ({periodo})",
                 value = f"{preco_final:.2f}",
                 delta = f"{variacao:.2f}%")
         else:
