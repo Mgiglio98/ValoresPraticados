@@ -67,26 +67,27 @@ if filtro_insumo != "Todos":
         df_pivot.index = df_pivot.index.strftime("%Y-%m")
 
         fig = px.line(
-        df_mes,
-        x="DATACOMPRA",
-        y="VALOR_NUM",
-        color="ESTADO",
-        markers=True,
-        title="Evolução de Preço (média mensal – últimos 12 meses)")
+            df_mes,
+            x="DATACOMPRA",
+            y="VALOR_NUM",
+            color="ESTADO",
+            markers=True,
+            title="Evolução de Preço (média mensal – últimos 12 meses)")
         
         fig.update_xaxes(
             tickformat="%Y-%m",
             dtick="M1")
       
         fig.update_traces(
-            text=df_mes["VALOR_NUM"].round(2),
-            textposition="top center",
-            mode="lines+markers+text")
+            mode="lines+markers+text",
+            texttemplate="%{y:.2f}",
+            textposition="top center")
     
         fig.update_layout(
             height=450,
             legend_title_text="UF",
-            hovermode="x unified",)
+            hovermode="x unified",
+            yaxis_title="Preço médio (R$)")
         
         st.plotly_chart(fig, use_container_width=True)
     
