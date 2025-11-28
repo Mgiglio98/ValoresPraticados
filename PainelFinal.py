@@ -70,7 +70,7 @@ if filtro_insumo != "Todos":
     if df_graf.empty:
         st.info(f"Não há dados nos últimos {periodo} para esse insumo.")
     else:
-        df_tmp = df_graf.sort_values("DATACOMPRA")
+        df_tmp = df_mes.sort_values("DATACOMPRA")
         if len(df_tmp) >= 2:
             preco_inicial = df_tmp["VALOR_NUM"].iloc[0]
             preco_final = df_tmp["VALOR_NUM"].iloc[-1]
