@@ -10,6 +10,8 @@ def carregar_base():
     df = pd.read_excel(base_path, sheet_name=0)
     df.columns = [col.strip() for col in df.columns]
     df["DATACOMPRA"] = pd.to_datetime(df["DATACOMPRA"], errors = "coerce")
+    df["VALOR_NUM"] = pd.to_numeric(df["VALORESPRATICADOS"], errors="coerce")
+    df["VALORESPRATICADOS"] = df["VALOR_NUM"].apply(lambda x: f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else "")
     df = df.sort_values("DATACOMPRA", ascending=False)
     return df
 
@@ -46,3 +48,23 @@ st.subheader("Últimos valores Praticados")
 st.dataframe(df_recentes, use_container_width = True)
 st.subheader("Base Completa")
 st.dataframe(df_filtrado.head(50))
+
+st.subheader("Evolução de Preço (média mensal – últimos 12 meses)")
+
+if filtro_insumo != "Todos":
+    df_graf = df_filtrado.copy()
+    df_graf = df_graf[df_graf["VALOR_NUM"].notna()]
+    hoje = pd.Timestamp.today().normalize()
+    cutoff = hoje - pd.DateOffset(months=12)
+    df_graf = df_graf[df_graf["DATACOMPRA"] >= cutoff]
+
+    if df_graf.empty:
+        st.info("Não há dados nos últimos 12 meses para esse insumo.")
+    else:
+        df_mes = (df_graf.groupby([pd.Grouper(key = "DATACOMPRA", freq = "M"), "ESTADO"])["VALOR_NUM"].mean().reset_index().sort_values("DATACOMPRA"))
+        df_pivot = df_mes.pivot(index = "DATACOMPRA", columns = "ESTADO", values = "VALOR_NUM").sort_index()
+        df_pivot.index = df_pivot.index.strftime("%Y-%m")
+
+        st.line_chart(df_pivot)
+else:
+    st.info("Selecione um insumo específico para visualizar a evolução de preços.")
