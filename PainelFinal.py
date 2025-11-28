@@ -70,6 +70,7 @@ if filtro_insumo != "Todos":
     if df_graf.empty:
         st.info(f"Não há dados nos últimos {periodo} para esse insumo.")
     else:
+        df_mes = (df_graf.groupby([pd.Grouper(key = "DATACOMPRA", freq = "MS"), "ESTADO"])["VALOR_NUM"].mean().reset_index().sort_values("DATACOMPRA"))
         df_tmp = df_mes.sort_values("DATACOMPRA")
         if len(df_tmp) >= 2:
             preco_inicial = df_tmp["VALOR_NUM"].iloc[0]
@@ -83,7 +84,7 @@ if filtro_insumo != "Todos":
         else:
             st.info("Não há dados suficientes para calcular a variação.")
 
-        df_mes = (df_graf.groupby([pd.Grouper(key = "DATACOMPRA", freq = "MS"), "ESTADO"])["VALOR_NUM"].mean().reset_index().sort_values("DATACOMPRA"))
+        #df_mes = (df_graf.groupby([pd.Grouper(key = "DATACOMPRA", freq = "MS"), "ESTADO"])["VALOR_NUM"].mean().reset_index().sort_values("DATACOMPRA"))
         df_pivot = df_mes.pivot(index = "DATACOMPRA", columns = "ESTADO", values = "VALOR_NUM").sort_index()
         df_pivot.index = df_pivot.index.strftime("%Y-%m")
 
