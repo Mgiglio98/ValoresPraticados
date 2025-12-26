@@ -45,13 +45,13 @@ if filtro_estado != "Todos":
 
 df_recentes = df_filtrado.drop_duplicates(subset = ["INSUMOCDG", "ESTADO"], keep = "first").reset_index(drop = True)
 
-df_recentes.drop(columns=["VALOR_NUM"], inplace=True)
-df_filtrado.drop(columns=["VALOR_NUM"], inplace=True)
+df_recentes_view = df_recentes.drop(columns=["VALOR_NUM"])
+df_filtrado_view = df_filtrado.drop(columns=["VALOR_NUM"])
 
 st.subheader("Últimos Valores Praticados")
-st.dataframe(df_recentes, use_container_width = True)
+st.dataframe(df_recentes_view, use_container_width=True)
 st.subheader("Base Completa")
-st.dataframe(df_filtrado.head(50))
+st.dataframe(df_filtrado_view.head(50))
 
 st.subheader("Evolução de Preço")
 
