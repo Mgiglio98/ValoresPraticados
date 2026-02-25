@@ -21,15 +21,12 @@ df_valores = carregar_base()
 st.title("Painel de Preços - Suprimentos")
 st.subheader("Filtros")
 
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
 
 with col1:
-    filtro_insumo_cdg = st.selectbox("Código do Insumo", options = ["Todos"] + sorted(df_valores["INSUMOCDG"].dropna().unique().tolist()))
+    filtro_insumo = st.selectbox("Insumo", options = ["Todos"] + sorted(df_valores["INSUMO"].dropna().unique().tolist()))
 
 with col2:
-    filtro_insumo = st.selectbox("Descrição do Insumo", options = ["Todos"] + sorted(df_valores["INSUMO"].dropna().unique().tolist()))
-
-with col3:
     filtro_estado = st.selectbox("Estado", options = ["Todos"] + sorted(df_valores["ESTADO"].dropna().unique().tolist()))
 
 df_filtrado = df_valores.copy()
