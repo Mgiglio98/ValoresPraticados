@@ -31,9 +31,6 @@ with col2:
 
 df_filtrado = df_valores.copy()
 
-if filtro_insumo_cdg != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["INSUMOCDG"] == filtro_insumo_cdg]
-
 if filtro_insumo != "Todos":
     df_filtrado = df_filtrado[df_filtrado["INSUMO"] == filtro_insumo]
 
