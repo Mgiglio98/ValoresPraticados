@@ -43,8 +43,8 @@ df_recentes_view = df_recentes.drop(columns=["VALOR_NUM"])
 df_filtrado_view = df_filtrado.drop(columns=["VALOR_NUM"])
 
 st.subheader("Últimos Valores Praticados")
-df_recentes_view = df_recentes_view.rename(columns={"INSUMOSCDG": "Código do Insumo","INSUMO": "Insumo","VALORESPRATICADOS": "Preço de Compra","UNIDADE": "Unidade","DATACOMPRA": "Data da Compra","ESTADO": "Estado","FORNECEDOR": "Fornecedor"})
-st.dataframe(df_recentes_view, use_container_width=True)
+df_recentes_view = df_recentes_view.rename(columns={"INSUMOCDG": "Código do Insumo","INSUMO": "Insumo","VALORESPRATICADOS": "Preço de Compra","UNIDADE": "Unidade","DATACOMPRA": "Data da Compra","ESTADO": "Estado","FORNECEDOR": "Fornecedor"})
+st.dataframe(df_recentes_view, use_container_width=True, hide_index=True)
 st.subheader("Base Completa")
 st.dataframe(df_filtrado_view.head(50))
 
