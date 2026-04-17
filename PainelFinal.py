@@ -7,7 +7,7 @@ st.set_page_config(page_title = "Painel de Preços - Suprimentos", layout = "wid
 
 @st.cache_data
 def carregar_base():
-    base_path = Path(__file__).parent / "TabelaValores.xlsx"
+    base_path = Path(__file__).parent / "ValoresPraticados.xlsx"
     df = pd.read_excel(base_path, sheet_name=0)
     df.columns = [col.strip() for col in df.columns]
     df["DATACOMPRA"] = pd.to_datetime(df["DATACOMPRA"], errors = "coerce")
