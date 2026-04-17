@@ -47,8 +47,8 @@ df_recentes = df_filtrado.drop_duplicates(subset = ["INSUMOCDG", "ESTADO"], keep
 df_recentes_view = df_recentes.drop(columns=["VALOR_NUM"])
 df_filtrado_view = df_filtrado.drop(columns=["VALOR_NUM"])
 
-df_recentes_view["Data da Compra"] = pd.to_datetime(df_recentes_view["Data da Compra"]).dt.strftime("%d/%m/%Y")
-df_filtrado_view["Data da Compra"] = pd.to_datetime(df_filtrado_view["Data da Compra"]).dt.strftime("%d/%m/%Y")
+df_recentes_view["DATACOMPRA"] = pd.to_datetime(df_recentes_view["DATACOMPRA"]).dt.strftime("%d/%m/%Y")
+df_filtrado_view["DATACOMPRA"] = pd.to_datetime(df_filtrado_view["DATACOMPRA"]).dt.strftime("%d/%m/%Y")
 
 st.subheader("Últimos Valores Praticados")
 df_recentes_view = df_recentes_view.rename(columns={"INSUMOCDG": "Código do Insumo","INSUMO": "Insumo","VALORESPRATICADOS": "Preço de Compra","UNIDADE": "Unidade","DATACOMPRA": "Data da Compra","ESTADO": "Estado","FORNECEDOR": "Fornecedor"})
