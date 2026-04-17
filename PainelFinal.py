@@ -19,6 +19,12 @@ def carregar_base():
 df_valores = carregar_base()
 
 st.title("Painel de Preços - Suprimentos")
+
+periodo_min = df["DATACOMPRA"].min().strftime("%d/%m/%Y")
+periodo_max = df["DATACOMPRA"].max().strftime("%d/%m/%Y")
+st.markdown(
+    f"**Período filtrado:** {periodo_min} → {periodo_max}")
+
 st.subheader("Filtros")
 
 col1, col2 = st.columns(2)
