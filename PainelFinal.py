@@ -5,7 +5,6 @@ import plotly.express as px
 
 st.set_page_config(page_title = "Painel de Preços - Suprimentos", layout = "wide")
 
-@st.cache_data
 def carregar_base():
     base_path = Path(__file__).parent / "ValoresPraticados.xlsx"
     df = pd.read_excel(base_path, sheet_name=0)
