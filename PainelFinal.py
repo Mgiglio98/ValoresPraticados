@@ -20,8 +20,8 @@ df_valores = carregar_base()
 
 st.title("Painel de Preços - Suprimentos")
 
-periodo_min = df["DATACOMPRA"].min().strftime("%d/%m/%Y")
-periodo_max = df["DATACOMPRA"].max().strftime("%d/%m/%Y")
+periodo_min = df_valores["DATACOMPRA"].min().strftime("%d/%m/%Y")
+periodo_max = df_valores["DATACOMPRA"].max().strftime("%d/%m/%Y")
 st.markdown(
     f"**Período filtrado:** {periodo_min} → {periodo_max}")
 
