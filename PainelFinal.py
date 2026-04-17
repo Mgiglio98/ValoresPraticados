@@ -18,20 +18,7 @@ def carregar_base():
 
 df_valores = carregar_base()
 
-st.write("Tipo da coluna:", df_valores["DATACOMPRA"].dtype)
-st.write("Menor data:", df_valores["DATACOMPRA"].min())
-st.write("Maior data:", df_valores["DATACOMPRA"].max())
-
-st.write("5 menores datas:")
-st.dataframe(
-    df_valores[["DATACOMPRA", "INSUMOCDG", "INSUMO", "ESTADO", "FORNECEDOR"]]
-    .sort_values("DATACOMPRA")
-    .head(20),
-    use_container_width=True
-)
-
 st.title("Painel de Preços - Suprimentos")
-
 periodo_min = df_valores["DATACOMPRA"].min().strftime("%d/%m/%Y")
 periodo_max = df_valores["DATACOMPRA"].max().strftime("%d/%m/%Y")
 st.markdown(
@@ -106,8 +93,7 @@ if filtro_insumo != "Todos":
                 cols[idx].metric(
                     label=f"{uf} — Sem dados suficientes",
                     value="–",
-                    delta="–"
-                )
+                    delta="–")
                 continue
         
             preco_inicial = df_uf["VALOR_NUM"].iloc[0]
@@ -117,19 +103,15 @@ if filtro_insumo != "Todos":
             cols[idx].metric(
                 label=f"Variação — {uf} ({periodo})",
                 value=f"{preco_final:.2f}",
-                delta=f"{variacao:.2f}%"
-            )
+                delta=f"{variacao:.2f}%")
 
         #df_mes = (df_graf.groupby([pd.Grouper(key = "DATACOMPRA", freq = "MS"), "ESTADO"])["VALOR_NUM"].mean().reset_index().sort_values("DATACOMPRA"))
         df_pivot = df_mes.pivot(index = "DATACOMPRA", columns = "ESTADO", values = "VALOR_NUM").sort_index()
         df_pivot.index = df_pivot.index.strftime("%Y-%m")
 
         fig = px.line(df_mes, x = "DATACOMPRA", y = "VALOR_NUM", color = "ESTADO", markers = True, title = f"Evolução de Preço – Média Mensal ({periodo})")
-        
         fig.update_xaxes(tickformat = "%Y-%m", dtick = "M1")
-      
         fig.update_traces(mode = "lines+markers+text", texttemplate = "%{y:.2f}", textposition = "top center")
-    
         fig.update_layout(height = 450, legend_title_text = "UF", hovermode = "x unified", yaxis_title = "Preço médio (R$)")
         
         st.plotly_chart(fig, use_container_width = True)
