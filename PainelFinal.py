@@ -9,9 +9,10 @@ def carregar_base():
     base_path = Path(__file__).parent / "ValoresPraticados.xlsx"
     df = pd.read_excel(base_path, sheet_name=0)
     df.columns = [col.strip() for col in df.columns]
-    df["DATACOMPRA"] = pd.to_datetime(df["DATACOMPRA"], errors = "coerce")
+    df["DATACOMPRA"] = pd.to_datetime(df["DATACOMPRA"], errors="coerce", dayfirst=True)
     df["VALOR_NUM"] = pd.to_numeric(df["VALORESPRATICADOS"], errors="coerce")
     df["VALORESPRATICADOS"] = df["VALOR_NUM"].apply(lambda x: f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else "")
+    df = df[df["DATACOMPRA"].notna()].copy()
     df = df.sort_values("DATACOMPRA", ascending=False)
     return df
 
@@ -58,6 +59,9 @@ df_recentes = df_filtrado.drop_duplicates(subset = ["INSUMOCDG", "ESTADO"], keep
 
 df_recentes_view = df_recentes.drop(columns=["VALOR_NUM"])
 df_filtrado_view = df_filtrado.drop(columns=["VALOR_NUM"])
+
+df_recentes_view["Data da Compra"] = pd.to_datetime(df_recentes_view["Data da Compra"]).dt.strftime("%d/%m/%Y")
+df_filtrado_view["Data da Compra"] = pd.to_datetime(df_filtrado_view["Data da Compra"]).dt.strftime("%d/%m/%Y")
 
 st.subheader("Últimos Valores Praticados")
 df_recentes_view = df_recentes_view.rename(columns={"INSUMOCDG": "Código do Insumo","INSUMO": "Insumo","VALORESPRATICADOS": "Preço de Compra","UNIDADE": "Unidade","DATACOMPRA": "Data da Compra","ESTADO": "Estado","FORNECEDOR": "Fornecedor"})
