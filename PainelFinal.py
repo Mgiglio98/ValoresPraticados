@@ -17,6 +17,18 @@ def carregar_base():
 
 df_valores = carregar_base()
 
+st.write("Tipo da coluna:", df_valores["DATACOMPRA"].dtype)
+st.write("Menor data:", df_valores["DATACOMPRA"].min())
+st.write("Maior data:", df_valores["DATACOMPRA"].max())
+
+st.write("5 menores datas:")
+st.dataframe(
+    df_valores[["DATACOMPRA", "INSUMOCDG", "INSUMO", "ESTADO", "FORNECEDOR"]]
+    .sort_values("DATACOMPRA")
+    .head(20),
+    use_container_width=True
+)
+
 st.title("Painel de Preços - Suprimentos")
 
 periodo_min = df_valores["DATACOMPRA"].min().strftime("%d/%m/%Y")
