@@ -137,27 +137,15 @@ st.markdown(f"**Período analisado:** {periodo_min} → {periodo_max}")
 
 st.subheader("Filtros")
 
-col1, col2 = st.columns(2)
-
-with col1:
-    filtro_estado = st.selectbox(
-        "Estado",
-        options=["Todos"] + sorted(df["ESTADO"].dropna().unique().tolist())
-    )
-
-with col2:
-    filtro_unidade = st.selectbox(
-        "Unidade",
-        options=["Todos"] + sorted(df["UNIDADE"].dropna().unique().tolist())
-    )
+filtro_estado = st.selectbox(
+    "Estado",
+    options=["Todos"] + sorted(df["ESTADO"].dropna().unique().tolist())
+)
 
 df_filtrado = df.copy()
 
 if filtro_estado != "Todos":
     df_filtrado = df_filtrado[df_filtrado["ESTADO"] == filtro_estado]
-
-if filtro_unidade != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["UNIDADE"] == filtro_unidade]
 
 st.subheader("Variação acumulada por grupo")
 
@@ -232,7 +220,12 @@ for grupo in GRUPOS_INSUMOS.keys():
 
     st.plotly_chart(fig, use_container_width=True)
 
-    with st.expander(f"Ver base usada - {grupo}"):
+    mostrar_base = st.checkbox(
+        f"Mostrar base usada - {grupo}",
+        key=f"mostrar_base_{grupo}"
+    )
+    
+    if mostrar_base:
         df_view = df_grupo.copy()
 
         df_view["DATACOMPRA"] = df_view["DATACOMPRA"].dt.strftime("%d/%m/%Y")
