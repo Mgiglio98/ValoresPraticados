@@ -151,22 +151,47 @@ st.subheader("Variação acumulada por grupo")
 
 cols = st.columns(5)
 
+def cor_variacao(valor):
+    if valor > 0:
+        return "#16a34a"  # verde
+    elif valor < 0:
+        return "#dc2626"  # vermelho
+    return "#9ca3af"      # cinza
+
+
 for idx, grupo in enumerate(GRUPOS_INSUMOS.keys()):
     df_grupo = df_filtrado[df_filtrado["GRUPO"] == grupo]
-
     resultado = calcular_variacao_grupo(df_grupo)
 
-    if resultado is None:
-        cols[idx].metric(
-            label=grupo,
-            value="-"
-        )
-    else:
-        cols[idx].metric(
-            label=grupo,
-            value=formatar_percentual(resultado["variacao"]),
-            delta=formatar_percentual(resultado["variacao"])
-        )
+    with cols[idx]:
+        if resultado is None:
+            st.markdown(f"""
+                <div style="padding: 10px 0;">
+                    <div style="font-size: 14px;">{grupo}</div>
+                    <div style="font-size: 32px; font-weight: 700; color: #9ca3af;">-</div>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            variacao = resultado["variacao"]
+            cor = cor_variacao(variacao)
+            seta = "↑" if variacao > 0 else "↓" if variacao < 0 else "→"
+
+            st.markdown(f"""
+                <div style="padding: 10px 0;">
+                    <div style="font-size: 14px; margin-bottom: 6px;">{grupo}</div>
+                    <div style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 8px;
+                        font-size: 32px;
+                        font-weight: 700;
+                        color: {cor};
+                    ">
+                        <span>{seta}</span>
+                        <span>{formatar_percentual(variacao)}</span>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
 
 st.subheader("Evolução mensal por grupo")
 
