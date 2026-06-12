@@ -164,12 +164,8 @@ for idx, grupo in enumerate(GRUPOS_INSUMOS.keys()):
     else:
         cols[idx].metric(
             label=grupo,
-            value=formatar_percentual(resultado["variacao"])
-        )
-
-        cols[idx].caption(
-            f"{formatar_moeda(resultado['preco_inicial'])} → "
-            f"{formatar_moeda(resultado['preco_final'])}"
+            value=formatar_percentual(resultado["variacao"]),
+            delta=formatar_percentual(resultado["variacao"])
         )
 
 st.subheader("Evolução mensal por grupo")
