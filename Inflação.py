@@ -159,14 +159,17 @@ for idx, grupo in enumerate(GRUPOS_INSUMOS.keys()):
     if resultado is None:
         cols[idx].metric(
             label=grupo,
-            value="-",
-            delta="Sem dados suficientes"
+            value="-"
         )
     else:
         cols[idx].metric(
             label=grupo,
-            value=formatar_percentual(resultado["variacao"]),
-            delta=f"{formatar_moeda(resultado['preco_inicial'])} → {formatar_moeda(resultado['preco_final'])}"
+            value=formatar_percentual(resultado["variacao"])
+        )
+
+        cols[idx].caption(
+            f"{formatar_moeda(resultado['preco_inicial'])} → "
+            f"{formatar_moeda(resultado['preco_final'])}"
         )
 
 st.subheader("Evolução mensal por grupo")
