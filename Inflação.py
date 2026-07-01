@@ -198,6 +198,13 @@ for grupo in GRUPOS_INSUMOS.keys():
                         </div>
                     </div>
                 """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div style="
+            border-top: 2px solid #e5e7eb;
+            margin: 35px 0;
+        "></div>
+        """, unsafe_allow_html=True)
                 
 st.subheader("Evolução mensal por grupo")
 
