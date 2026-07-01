@@ -149,7 +149,14 @@ def cor_variacao(valor):
 for grupo in GRUPOS_INSUMOS.keys():
     st.markdown(f"### {grupo}")
 
-    estados = sorted(df_filtrado[df_filtrado["GRUPO"] == grupo]["ESTADO"].dropna().unique())
+    ordem_estados = ["RJ", "SP", "SC"]
+
+    estados_disponiveis = df_filtrado[df_filtrado["GRUPO"] == grupo]["ESTADO"].dropna().unique()
+    
+    estados = [
+        estado for estado in ordem_estados
+        if estado in estados_disponiveis
+    ]
 
     if not estados:
         st.info(f"Não há dados para o grupo {grupo}.")
@@ -293,3 +300,10 @@ for grupo in GRUPOS_INSUMOS.keys():
             use_container_width=True,
             hide_index=True
         )
+
+    st.markdown("""
+    <div style="
+        border-top: 2px solid #e5e7eb;
+        margin: 35px 0;
+    "></div>
+    """, unsafe_allow_html=True)
