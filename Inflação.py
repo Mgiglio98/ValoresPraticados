@@ -197,30 +197,6 @@ for grupo in GRUPOS_INSUMOS.keys():
                 
 st.subheader("Evolução mensal por grupo")
 
-def preparar_rotulos_relevantes(df_mensal):
-    df_mensal = df_mensal.copy()
-    df_mensal["ROTULO"] = ""
-    df_mensal["POSICAO_ROTULO"] = "top center"
-
-    for estado, df_estado in df_mensal.groupby("ESTADO"):
-        indices_rotular = set()
-
-        indices_rotular.add(df_estado["DATACOMPRA"].idxmin())
-        indices_rotular.add(df_estado["DATACOMPRA"].idxmax())
-        indices_rotular.add(df_estado["VALOR_NUM"].idxmax())
-        indices_rotular.add(df_estado["VALOR_NUM"].idxmin())
-
-        for idx in indices_rotular:
-            valor = df_mensal.loc[idx, "VALOR_NUM"]
-            df_mensal.loc[idx, "ROTULO"] = f"{valor:.2f}"
-
-            if idx == df_estado["VALOR_NUM"].idxmin():
-                df_mensal.loc[idx, "POSICAO_ROTULO"] = "bottom center"
-            else:
-                df_mensal.loc[idx, "POSICAO_ROTULO"] = "top center"
-
-    return df_mensal
-
 for grupo in GRUPOS_INSUMOS.keys():
     df_grupo = df_filtrado[df_filtrado["GRUPO"] == grupo].copy()
 
@@ -236,50 +212,48 @@ for grupo in GRUPOS_INSUMOS.keys():
         .sort_values("DATACOMPRA")
     )
 
-    df_mensal = preparar_rotulos_relevantes(df_mensal)
-
     if df_mensal.empty:
         st.info(f"Não há dados mensais para o grupo {grupo}.")
         continue
 
-    fig = px.line(
-        df_mensal,
-        x="DATACOMPRA",
-        y="VALOR_NUM",
-        color="ESTADO",
-        markers=True,
-        text="ROTULO",
-        title=f"{grupo} - Evolução do preço médio mensal por estado"
-    )
+    estados = sorted(df_mensal["ESTADO"].dropna().unique())
 
-    fig.update_xaxes(
-        tickformat="%m/%Y",
-        dtick="M1"
-    )
-
-    for trace in fig.data:
-        estado = trace.name
+    cols_estado = st.columns(len(estados))
     
-        posicoes = (
-            df_mensal[df_mensal["ESTADO"] == estado]
-            .sort_values("DATACOMPRA")["POSICAO_ROTULO"]
-            .tolist()
-        )
+    for idx_estado, estado in enumerate(estados):
+        df_estado = df_mensal[df_mensal["ESTADO"] == estado].copy()
     
-        trace.mode = "lines+markers+text"
-        trace.texttemplate = "%{text}"
-        trace.textposition = posicoes
-        trace.textfont = dict(size=9)
-
-    fig.update_layout(
-        height=420,
-        hovermode="x unified",
-        legend_title_text="Estado",
-        yaxis_title="Preço médio mensal (R$)",
-        xaxis_title="Mês"
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
+        with cols_estado[idx_estado]:
+            fig = px.line(
+                df_estado,
+                x="DATACOMPRA",
+                y="VALOR_NUM",
+                markers=True,
+                text=df_estado["VALOR_NUM"].apply(lambda x: f"{x:.2f}"),
+                title=f"{grupo} - {estado}"
+            )
+    
+            fig.update_xaxes(
+                tickformat="%m/%Y",
+                dtick="M1"
+            )
+    
+            fig.update_traces(
+                mode="lines+markers+text",
+                textposition="top center",
+                textfont=dict(size=9)
+            )
+    
+            fig.update_layout(
+                height=330,
+                showlegend=False,
+                hovermode="x unified",
+                margin=dict(l=20, r=20, t=45, b=20),
+                yaxis_title="Preço médio (R$)",
+                xaxis_title=None
+            )
+    
+            st.plotly_chart(fig, use_container_width=True)
 
     mostrar_base = st.checkbox(
         f"Mostrar base usada - {grupo}",
