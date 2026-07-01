@@ -197,24 +197,27 @@ for grupo in GRUPOS_INSUMOS.keys():
                 
 st.subheader("Evolução mensal por grupo")
 
-def preparar_rotulos_sem_colisao(df_mensal):
+def preparar_rotulos_relevantes(df_mensal):
     df_mensal = df_mensal.copy()
-
-    df_mensal["ROTULO"] = df_mensal["VALOR_NUM"].apply(lambda x: f"{x:.2f}")
+    df_mensal["ROTULO"] = ""
     df_mensal["POSICAO_ROTULO"] = "top center"
 
-    posicoes_colisao = [
-        "top center",
-        "bottom center",
-        "middle right",
-        "middle left"
-    ]
+    for estado, df_estado in df_mensal.groupby("ESTADO"):
+        indices_rotular = set()
 
-    for data, grupo_data in df_mensal.groupby("DATACOMPRA"):
-        grupo_data = grupo_data.sort_values("VALOR_NUM").copy()
+        indices_rotular.add(df_estado["DATACOMPRA"].idxmin())
+        indices_rotular.add(df_estado["DATACOMPRA"].idxmax())
+        indices_rotular.add(df_estado["VALOR_NUM"].idxmax())
+        indices_rotular.add(df_estado["VALOR_NUM"].idxmin())
 
-        for i, idx in enumerate(grupo_data.index):
-            df_mensal.loc[idx, "POSICAO_ROTULO"] = posicoes_colisao[i % len(posicoes_colisao)]
+        for idx in indices_rotular:
+            valor = df_mensal.loc[idx, "VALOR_NUM"]
+            df_mensal.loc[idx, "ROTULO"] = f"{valor:.2f}"
+
+            if idx == df_estado["VALOR_NUM"].idxmin():
+                df_mensal.loc[idx, "POSICAO_ROTULO"] = "bottom center"
+            else:
+                df_mensal.loc[idx, "POSICAO_ROTULO"] = "top center"
 
     return df_mensal
 
@@ -233,7 +236,7 @@ for grupo in GRUPOS_INSUMOS.keys():
         .sort_values("DATACOMPRA")
     )
 
-    df_mensal = preparar_rotulos_sem_colisao(df_mensal)
+    df_mensal = preparar_rotulos_relevantes(df_mensal)
 
     if df_mensal.empty:
         st.info(f"Não há dados mensais para o grupo {grupo}.")
