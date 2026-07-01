@@ -197,29 +197,24 @@ for grupo in GRUPOS_INSUMOS.keys():
                 
 st.subheader("Evolução mensal por grupo")
 
-def gerar_rotulos_sem_colisao(df_mensal, limite_colisao=0.8):
+def preparar_rotulos_sem_colisao(df_mensal):
     df_mensal = df_mensal.copy()
-    df_mensal["ROTULO"] = ""
+
+    df_mensal["ROTULO"] = df_mensal["VALOR_NUM"].apply(lambda x: f"{x:.2f}")
+    df_mensal["POSICAO_ROTULO"] = "top center"
+
+    posicoes_colisao = [
+        "top center",
+        "bottom center",
+        "middle right",
+        "middle left"
+    ]
 
     for data, grupo_data in df_mensal.groupby("DATACOMPRA"):
         grupo_data = grupo_data.sort_values("VALOR_NUM").copy()
 
-        # Sempre tenta mostrar o maior valor primeiro
-        grupo_data = grupo_data.sort_values("VALOR_NUM", ascending=False)
-
-        valores_mostrados = []
-
-        for idx, row in grupo_data.iterrows():
-            valor = row["VALOR_NUM"]
-
-            colide = any(
-                abs(valor - valor_mostrado) < limite_colisao
-                for valor_mostrado in valores_mostrados
-            )
-
-            if not colide:
-                df_mensal.loc[idx, "ROTULO"] = f"{valor:.2f}"
-                valores_mostrados.append(valor)
+        for i, idx in enumerate(grupo_data.index):
+            df_mensal.loc[idx, "POSICAO_ROTULO"] = posicoes_colisao[i % len(posicoes_colisao)]
 
     return df_mensal
 
@@ -238,7 +233,7 @@ for grupo in GRUPOS_INSUMOS.keys():
         .sort_values("DATACOMPRA")
     )
 
-    df_mensal = gerar_rotulos_sem_colisao(df_mensal, limite_colisao=1.0)
+    df_mensal = preparar_rotulos_sem_colisao(df_mensal)
 
     if df_mensal.empty:
         st.info(f"Não há dados mensais para o grupo {grupo}.")
@@ -259,11 +254,19 @@ for grupo in GRUPOS_INSUMOS.keys():
         dtick="M1"
     )
 
-    fig.update_traces(
-        mode="lines+markers+text",
-        textposition="top center",
-        textfont=dict(size=10)
-    )
+    for trace in fig.data:
+        estado = trace.name
+    
+        posicoes = (
+            df_mensal[df_mensal["ESTADO"] == estado]
+            .sort_values("DATACOMPRA")["POSICAO_ROTULO"]
+            .tolist()
+        )
+    
+        trace.mode = "lines+markers+text"
+        trace.texttemplate = "%{text}"
+        trace.textposition = posicoes
+        trace.textfont = dict(size=9)
 
     fig.update_layout(
         height=420,
