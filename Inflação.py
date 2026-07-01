@@ -136,7 +136,7 @@ st.markdown(f"**Período analisado:** {periodo_min} → {periodo_max}")
 
 df_filtrado = df.copy()
 
-st.subheader("Variação acumulada por grupo e estado")
+st.subheader("Análise por grupo e estado")
 
 def cor_variacao(valor):
     if valor > 0:
@@ -145,36 +145,29 @@ def cor_variacao(valor):
         return "#dc2626"
     return "#9ca3af"
 
+ordem_estados = ["RJ", "SP", "SC"]
 
 for grupo in GRUPOS_INSUMOS.keys():
-    st.markdown(f"### {grupo}")
+    df_grupo = df_filtrado[df_filtrado["GRUPO"] == grupo].copy()
 
-    ordem_estados = ["RJ", "SP", "SC"]
-    cols = st.columns(3)
+    if df_grupo.empty:
+        st.info(f"Não há dados para o grupo {grupo}.")
+        continue
+
+    st.markdown(f"## {grupo}")
+    
+    cols_cards = st.columns(3)
 
     for idx, estado in enumerate(ordem_estados):
-        df_grupo_estado = df_filtrado[
-            (df_filtrado["GRUPO"] == grupo) &
-            (df_filtrado["ESTADO"] == estado)
-        ]
+        df_grupo_estado = df_grupo[df_grupo["ESTADO"] == estado].copy()
+        resultado = calcular_variacao_grupo(df_grupo_estado)
 
-        with cols[idx]:
-            if df_grupo_estado.empty:
+        with cols_cards[idx]:
+            if df_grupo_estado.empty or resultado is None:
                 st.markdown(f"""
                     <div style="padding: 10px 0;">
                         <div style="font-size: 14px;">{estado}</div>
                         <div style="font-size: 24px; font-weight: 600; color: #9ca3af;">Sem dados</div>
-                    </div>
-                """, unsafe_allow_html=True)
-                continue
-
-            resultado = calcular_variacao_grupo(df_grupo_estado)
-
-            if resultado is None:
-                st.markdown(f"""
-                    <div style="padding: 10px 0;">
-                        <div style="font-size: 14px;">{estado}</div>
-                        <div style="font-size: 32px; font-weight: 700; color: #9ca3af;">-</div>
                     </div>
                 """, unsafe_allow_html=True)
             else:
@@ -183,7 +176,7 @@ for grupo in GRUPOS_INSUMOS.keys():
                 seta = "↑" if variacao > 0 else "↓" if variacao < 0 else "→"
 
                 st.markdown(f"""
-                    <div style="padding: 10px 0;">
+                    <div style="padding: 10px 0 20px 0;">
                         <div style="font-size: 14px; margin-bottom: 6px;">{estado}</div>
                         <div style="
                             display: inline-flex;
@@ -199,22 +192,6 @@ for grupo in GRUPOS_INSUMOS.keys():
                     </div>
                 """, unsafe_allow_html=True)
 
-                st.markdown("""
-                <div style="
-                    border-top: 2px solid #e5e7eb;
-                    margin: 35px 0;
-                "></div>
-                """, unsafe_allow_html=True)
-                
-st.subheader("Evolução mensal por grupo")
-
-for grupo in GRUPOS_INSUMOS.keys():
-    df_grupo = df_filtrado[df_filtrado["GRUPO"] == grupo].copy()
-
-    if df_grupo.empty:
-        st.info(f"Não há dados para o grupo {grupo}.")
-        continue
-
     df_mensal = (
         df_grupo
         .groupby([pd.Grouper(key="DATACOMPRA", freq="MS"), "ESTADO"])["VALOR_NUM"]
@@ -223,43 +200,37 @@ for grupo in GRUPOS_INSUMOS.keys():
         .sort_values("DATACOMPRA")
     )
 
-    if df_mensal.empty:
-        st.info(f"Não há dados mensais para o grupo {grupo}.")
-        continue
+    cols_graficos = st.columns(3)
 
-    ordem_estados = ["RJ", "SP", "SC"]
-
-    cols_estado = st.columns(3)
-    
-    for idx_estado, estado in enumerate(ordem_estados):
+    for idx, estado in enumerate(ordem_estados):
         df_estado = df_mensal[df_mensal["ESTADO"] == estado].copy()
-    
-        with cols_estado[idx_estado]:
+
+        with cols_graficos[idx]:
             if df_estado.empty:
-                st.markdown(f"#### {grupo} - {estado}")
+                st.markdown(f"#### {estado}")
                 st.caption("Sem dados no período")
                 continue
-        
+
             fig = px.line(
                 df_estado,
                 x="DATACOMPRA",
                 y="VALOR_NUM",
                 markers=True,
                 text=df_estado["VALOR_NUM"].apply(lambda x: f"{x:.2f}"),
-                title=f"{grupo} - {estado}"
+                title=estado
             )
-    
+
             fig.update_xaxes(
                 tickformat="%m/%Y",
                 dtick="M1"
             )
-    
+
             fig.update_traces(
                 mode="lines+markers+text",
                 textposition="top center",
                 textfont=dict(size=9)
             )
-    
+
             fig.update_layout(
                 height=330,
                 showlegend=False,
@@ -268,14 +239,14 @@ for grupo in GRUPOS_INSUMOS.keys():
                 yaxis_title="Preço médio (R$)",
                 xaxis_title=None
             )
-    
+
             st.plotly_chart(fig, use_container_width=True)
 
     mostrar_base = st.checkbox(
         f"Mostrar base usada - {grupo}",
         key=f"mostrar_base_{grupo}"
     )
-    
+
     if mostrar_base:
         df_view = df_grupo.copy()
 
@@ -313,6 +284,6 @@ for grupo in GRUPOS_INSUMOS.keys():
     st.markdown("""
     <div style="
         border-top: 2px solid #e5e7eb;
-        margin: 35px 0;
+        margin: 40px 0;
     "></div>
     """, unsafe_allow_html=True)
