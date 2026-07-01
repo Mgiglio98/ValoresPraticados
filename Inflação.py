@@ -123,7 +123,7 @@ df["GRUPO"] = df["INSUMOCDG"].apply(classificar_grupo)
 df = df[df["GRUPO"].notna()].copy()
 
 data_max = df["DATACOMPRA"].max()
-data_min_periodo = data_max - pd.DateOffset(years=2)
+data_min_periodo = data_max - pd.DateOffset(years=1)
 
 df = df[df["DATACOMPRA"] >= data_min_periodo].copy()
 
@@ -134,64 +134,67 @@ periodo_max = df["DATACOMPRA"].max().strftime("%d/%m/%Y")
 
 st.markdown(f"**Período analisado:** {periodo_min} → {periodo_max}")
 
-st.subheader("Filtros")
-
-filtro_estado = st.selectbox(
-    "Estado",
-    options=["Todos"] + sorted(df["ESTADO"].dropna().unique().tolist())
-)
-
 df_filtrado = df.copy()
 
-if filtro_estado != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["ESTADO"] == filtro_estado]
-
-st.subheader("Variação acumulada por grupo")
-
-cols = st.columns(5)
+st.subheader("Variação acumulada por grupo e estado")
 
 def cor_variacao(valor):
     if valor > 0:
-        return "#16a34a"  # verde
+        return "#16a34a"
     elif valor < 0:
-        return "#dc2626"  # vermelho
-    return "#9ca3af"      # cinza
+        return "#dc2626"
+    return "#9ca3af"
 
 
-for idx, grupo in enumerate(GRUPOS_INSUMOS.keys()):
-    df_grupo = df_filtrado[df_filtrado["GRUPO"] == grupo]
-    resultado = calcular_variacao_grupo(df_grupo)
+for grupo in GRUPOS_INSUMOS.keys():
+    st.markdown(f"### {grupo}")
 
-    with cols[idx]:
-        if resultado is None:
-            st.markdown(f"""
-                <div style="padding: 10px 0;">
-                    <div style="font-size: 14px;">{grupo}</div>
-                    <div style="font-size: 32px; font-weight: 700; color: #9ca3af;">-</div>
-                </div>
-            """, unsafe_allow_html=True)
-        else:
-            variacao = resultado["variacao"]
-            cor = cor_variacao(variacao)
-            seta = "↑" if variacao > 0 else "↓" if variacao < 0 else "→"
+    estados = sorted(df_filtrado[df_filtrado["GRUPO"] == grupo]["ESTADO"].dropna().unique())
 
-            st.markdown(f"""
-                <div style="padding: 10px 0;">
-                    <div style="font-size: 14px; margin-bottom: 6px;">{grupo}</div>
-                    <div style="
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 8px;
-                        font-size: 32px;
-                        font-weight: 700;
-                        color: {cor};
-                    ">
-                        <span>{seta}</span>
-                        <span>{formatar_percentual(variacao)}</span>
+    if not estados:
+        st.info(f"Não há dados para o grupo {grupo}.")
+        continue
+
+    cols = st.columns(len(estados))
+
+    for idx, estado in enumerate(estados):
+        df_grupo_estado = df_filtrado[
+            (df_filtrado["GRUPO"] == grupo) &
+            (df_filtrado["ESTADO"] == estado)
+        ]
+
+        resultado = calcular_variacao_grupo(df_grupo_estado)
+
+        with cols[idx]:
+            if resultado is None:
+                st.markdown(f"""
+                    <div style="padding: 10px 0;">
+                        <div style="font-size: 14px;">{estado}</div>
+                        <div style="font-size: 32px; font-weight: 700; color: #9ca3af;">-</div>
                     </div>
-                </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+            else:
+                variacao = resultado["variacao"]
+                cor = cor_variacao(variacao)
+                seta = "↑" if variacao > 0 else "↓" if variacao < 0 else "→"
 
+                st.markdown(f"""
+                    <div style="padding: 10px 0;">
+                        <div style="font-size: 14px; margin-bottom: 6px;">{estado}</div>
+                        <div style="
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 8px;
+                            font-size: 32px;
+                            font-weight: 700;
+                            color: {cor};
+                        ">
+                            <span>{seta}</span>
+                            <span>{formatar_percentual(variacao)}</span>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
 st.subheader("Evolução mensal por grupo")
 
 for grupo in GRUPOS_INSUMOS.keys():
@@ -203,7 +206,7 @@ for grupo in GRUPOS_INSUMOS.keys():
 
     df_mensal = (
         df_grupo
-        .groupby([pd.Grouper(key="DATACOMPRA", freq="MS"), "UNIDADE"])["VALOR_NUM"]
+        .groupby([pd.Grouper(key="DATACOMPRA", freq="MS"), "ESTADO"])["VALOR_NUM"]
         .mean()
         .reset_index()
         .sort_values("DATACOMPRA")
@@ -217,9 +220,9 @@ for grupo in GRUPOS_INSUMOS.keys():
         df_mensal,
         x="DATACOMPRA",
         y="VALOR_NUM",
-        color="UNIDADE",
+        color="ESTADO",
         markers=True,
-        title=f"{grupo} - Evolução do preço médio mensal"
+        title=f"{grupo} - Evolução do preço médio mensal por estado"
     )
 
     fig.update_xaxes(
@@ -236,7 +239,7 @@ for grupo in GRUPOS_INSUMOS.keys():
     fig.update_layout(
         height=420,
         hovermode="x unified",
-        legend_title_text="Unidade",
+        legend_title_text="Estado",
         yaxis_title="Preço médio mensal (R$)",
         xaxis_title="Mês"
     )
