@@ -150,29 +150,26 @@ for grupo in GRUPOS_INSUMOS.keys():
     st.markdown(f"### {grupo}")
 
     ordem_estados = ["RJ", "SP", "SC"]
+    cols = st.columns(3)
 
-    estados_disponiveis = df_filtrado[df_filtrado["GRUPO"] == grupo]["ESTADO"].dropna().unique()
-    
-    estados = [
-        estado for estado in ordem_estados
-        if estado in estados_disponiveis
-    ]
-
-    if not estados:
-        st.info(f"Não há dados para o grupo {grupo}.")
-        continue
-
-    cols = st.columns(len(estados))
-
-    for idx, estado in enumerate(estados):
+    for idx, estado in enumerate(ordem_estados):
         df_grupo_estado = df_filtrado[
             (df_filtrado["GRUPO"] == grupo) &
             (df_filtrado["ESTADO"] == estado)
         ]
 
-        resultado = calcular_variacao_grupo(df_grupo_estado)
-
         with cols[idx]:
+            if df_grupo_estado.empty:
+                st.markdown(f"""
+                    <div style="padding: 10px 0;">
+                        <div style="font-size: 14px;">{estado}</div>
+                        <div style="font-size: 24px; font-weight: 600; color: #9ca3af;">Sem dados</div>
+                    </div>
+                """, unsafe_allow_html=True)
+                continue
+
+            resultado = calcular_variacao_grupo(df_grupo_estado)
+
             if resultado is None:
                 st.markdown(f"""
                     <div style="padding: 10px 0;">
@@ -231,6 +228,11 @@ for grupo in GRUPOS_INSUMOS.keys():
         df_estado = df_mensal[df_mensal["ESTADO"] == estado].copy()
     
         with cols_estado[idx_estado]:
+            if df_estado.empty:
+                st.markdown(f"#### {grupo} - {estado}")
+                st.caption("Sem dados no período")
+                continue
+        
             fig = px.line(
                 df_estado,
                 x="DATACOMPRA",
