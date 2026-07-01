@@ -223,11 +223,11 @@ for grupo in GRUPOS_INSUMOS.keys():
         st.info(f"Não há dados mensais para o grupo {grupo}.")
         continue
 
-    estados = sorted(df_mensal["ESTADO"].dropna().unique())
+    ordem_estados = ["RJ", "SP", "SC"]
 
-    cols_estado = st.columns(len(estados))
+    cols_estado = st.columns(3)
     
-    for idx_estado, estado in enumerate(estados):
+    for idx_estado, estado in enumerate(ordem_estados):
         df_estado = df_mensal[df_mensal["ESTADO"] == estado].copy()
     
         with cols_estado[idx_estado]:
