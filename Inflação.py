@@ -197,6 +197,32 @@ for grupo in GRUPOS_INSUMOS.keys():
                 
 st.subheader("Evolução mensal por grupo")
 
+def gerar_rotulos_sem_colisao(df_mensal, limite_colisao=0.8):
+    df_mensal = df_mensal.copy()
+    df_mensal["ROTULO"] = ""
+
+    for data, grupo_data in df_mensal.groupby("DATACOMPRA"):
+        grupo_data = grupo_data.sort_values("VALOR_NUM").copy()
+
+        # Sempre tenta mostrar o maior valor primeiro
+        grupo_data = grupo_data.sort_values("VALOR_NUM", ascending=False)
+
+        valores_mostrados = []
+
+        for idx, row in grupo_data.iterrows():
+            valor = row["VALOR_NUM"]
+
+            colide = any(
+                abs(valor - valor_mostrado) < limite_colisao
+                for valor_mostrado in valores_mostrados
+            )
+
+            if not colide:
+                df_mensal.loc[idx, "ROTULO"] = f"{valor:.2f}"
+                valores_mostrados.append(valor)
+
+    return df_mensal
+
 for grupo in GRUPOS_INSUMOS.keys():
     df_grupo = df_filtrado[df_filtrado["GRUPO"] == grupo].copy()
 
@@ -212,6 +238,8 @@ for grupo in GRUPOS_INSUMOS.keys():
         .sort_values("DATACOMPRA")
     )
 
+    df_mensal = gerar_rotulos_sem_colisao(df_mensal, limite_colisao=1.0)
+
     if df_mensal.empty:
         st.info(f"Não há dados mensais para o grupo {grupo}.")
         continue
@@ -222,6 +250,7 @@ for grupo in GRUPOS_INSUMOS.keys():
         y="VALOR_NUM",
         color="ESTADO",
         markers=True,
+        text="ROTULO",
         title=f"{grupo} - Evolução do preço médio mensal por estado"
     )
 
@@ -232,8 +261,8 @@ for grupo in GRUPOS_INSUMOS.keys():
 
     fig.update_traces(
         mode="lines+markers+text",
-        texttemplate="%{y:.2f}",
-        textposition="top center"
+        textposition="top center",
+        textfont=dict(size=10)
     )
 
     fig.update_layout(
