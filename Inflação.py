@@ -55,8 +55,6 @@ def carregar_base():
 
     df["EMPREENDIMENTO"] = df["EMPREENDIMENTO"].astype(str).str.strip()
     df = df[df["EMPREENDIMENTO"] != "2514"].copy()
-    
-    return df
 
     return df
 
