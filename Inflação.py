@@ -50,6 +50,8 @@ def carregar_base():
     df["FORNECEDOR"] = df["FORNECEDOR"].astype(str).str.strip()    
     df["EMPREENDIMENTO"] = df["EMPREENDIMENTO"].astype(str).str.strip()
 
+    df.loc[df["INSUMOCDG"] == "H.11.0034", "VALOR_NUM"] /= 7.404
+
     df = df[df["DATACOMPRA"].notna()].copy()
     df = df[df["VALOR_NUM"].notna()].copy()
 
