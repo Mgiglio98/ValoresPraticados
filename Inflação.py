@@ -47,18 +47,13 @@ def carregar_base():
     df["INSUMO"] = df["INSUMO"].astype(str).str.strip()
     df["UNIDADE"] = df["UNIDADE"].astype(str).str.strip().str.upper()
     df["ESTADO"] = df["ESTADO"].astype(str).str.strip().str.upper()
-    df["FORNECEDOR"] = df["FORNECEDOR"].astype(str).str.strip()
-
-    if "EMPREENDIMENTO" not in df.columns:
-        st.error(f"Coluna EMPREENDIMENTO não encontrada. Colunas lidas: {df.columns.tolist()}")
-        st.stop()
-    
+    df["FORNECEDOR"] = df["FORNECEDOR"].astype(str).str.strip()    
     df["EMPREENDIMENTO"] = df["EMPREENDIMENTO"].astype(str).str.strip()
 
     df = df[df["DATACOMPRA"].notna()].copy()
     df = df[df["VALOR_NUM"].notna()].copy()
 
-    df = df[df["EMPREENDIMENTO"] != "2514"].copy()
+    df = df[~df["EMPREENDIMENTO"].isin(["2514", "9992"])].copy()
 
     return df
 
