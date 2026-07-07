@@ -53,7 +53,6 @@ def carregar_base():
     df = df[df["DATACOMPRA"].notna()].copy()
     df = df[df["VALOR_NUM"].notna()].copy()
 
-    df["EMPREENDIMENTO"] = df["EMPREENDIMENTO"].astype(str).str.strip()
     df = df[df["EMPREENDIMENTO"] != "2514"].copy()
 
     return df
