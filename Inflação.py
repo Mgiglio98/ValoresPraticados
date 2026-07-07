@@ -31,7 +31,7 @@ GRUPOS_INSUMOS = {
 
 
 def carregar_base():
-    base_path = Path(__file__).parent / "ValoresPraticados.xlsx"
+    base_path = Path(__file__).parent / "Base_inflação.xlsx"
 
     df = pd.read_excel(base_path, sheet_name=0)
     df.columns = [col.strip() for col in df.columns]
