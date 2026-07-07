@@ -48,6 +48,11 @@ def carregar_base():
     df["UNIDADE"] = df["UNIDADE"].astype(str).str.strip().str.upper()
     df["ESTADO"] = df["ESTADO"].astype(str).str.strip().str.upper()
     df["FORNECEDOR"] = df["FORNECEDOR"].astype(str).str.strip()
+
+    if "EMPREENDIMENTO" not in df.columns:
+        st.error(f"Coluna EMPREENDIMENTO não encontrada. Colunas lidas: {df.columns.tolist()}")
+        st.stop()
+    
     df["EMPREENDIMENTO"] = df["EMPREENDIMENTO"].astype(str).str.strip()
 
     df = df[df["DATACOMPRA"].notna()].copy()
