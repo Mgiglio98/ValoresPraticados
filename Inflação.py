@@ -196,6 +196,16 @@ for grupo in GRUPOS_INSUMOS.keys():
         .sort_values("DATACOMPRA")
     )
 
+    y_min = df_mensal["VALOR_NUM"].min()
+    y_max = df_mensal["VALOR_NUM"].max()
+    
+    margem = (y_max - y_min) * 0.15
+    
+    range_y = [
+        y_min - margem,
+        y_max + margem
+    ]
+    
     cols_graficos = st.columns(3)
 
     for idx, estado in enumerate(ordem_estados):
@@ -233,7 +243,8 @@ for grupo in GRUPOS_INSUMOS.keys():
                 hovermode="x unified",
                 margin=dict(l=20, r=20, t=45, b=20),
                 yaxis_title="Preço médio (R$)",
-                xaxis_title=None
+                xaxis_title=None,
+                yaxis=dict(range=range_y)
             )
 
             st.plotly_chart(fig, use_container_width=True)
