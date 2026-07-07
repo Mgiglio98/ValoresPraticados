@@ -48,6 +48,7 @@ def carregar_base():
     df["UNIDADE"] = df["UNIDADE"].astype(str).str.strip().str.upper()
     df["ESTADO"] = df["ESTADO"].astype(str).str.strip().str.upper()
     df["FORNECEDOR"] = df["FORNECEDOR"].astype(str).str.strip()
+    df["EMPREENDIMENTO"] = df["EMPREENDIMENTO"].astype(str).str.strip()
 
     df = df[df["DATACOMPRA"].notna()].copy()
     df = df[df["VALOR_NUM"].notna()].copy()
