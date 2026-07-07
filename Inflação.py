@@ -10,10 +10,7 @@ st.set_page_config(
 
 GRUPOS_INSUMOS = {
     "Aço": [
-        "H.11.0021", "H.11.0022", "H.11.0023", "H.11.0024",
-        "H.11.0025", "H.11.0026", "H.11.0027", "H.11.0031",
-        "H.11.0032", "H.11.0033", "H.11.0034", "H.11.0035",
-        "H.11.0036", "H.11.0037"
+        "H.11.0024", "H.11.0034"
     ],
     "Argamassa": [
         "J.02.0001", "J.02.2000"
@@ -29,9 +26,8 @@ GRUPOS_INSUMOS = {
     ]
 }
 
-
 def carregar_base():
-    base_path = Path(__file__).parent / "Base_Inflação.xlsx"
+    base_path = Path(__file__).parent / "ValoresPraticados.xlsx"
 
     df = pd.read_excel(base_path, sheet_name=0)
     df.columns = [col.strip() for col in df.columns]
@@ -58,7 +54,6 @@ def carregar_base():
 
     return df
 
-
 def classificar_grupo(codigo):
     codigo = str(codigo).strip().upper()
 
@@ -68,20 +63,17 @@ def classificar_grupo(codigo):
 
     return None
 
-
 def formatar_moeda(valor):
     if pd.isna(valor):
         return "-"
 
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-
 def formatar_percentual(valor):
     if pd.isna(valor):
         return "-"
 
     return f"{valor:.2f}%"
-
 
 def calcular_variacao_grupo(df_grupo):
     if df_grupo.empty:
@@ -115,7 +107,6 @@ def calcular_variacao_grupo(df_grupo):
         "data_inicial": df_mensal["DATACOMPRA"].iloc[0],
         "data_final": df_mensal["DATACOMPRA"].iloc[-1]
     }
-
 
 df = carregar_base()
 
