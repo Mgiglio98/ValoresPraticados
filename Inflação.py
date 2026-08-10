@@ -260,19 +260,19 @@ for grupo in GRUPOS_INSUMOS.keys():
         
             if resultado_grande:
                 st.success(
-                    f"Compras grandes: "
+                    f"Carga Completa: "
                     f"{formatar_percentual(resultado_grande['variacao'])}"
                 )
             else:
-                st.caption("Compras grandes: sem dados")
-        
+                st.caption("Carga Completa: sem dados")
+            
             if resultado_pequena:
                 st.info(
-                    f"Compras pequenas: "
+                    f"Carga Fracionada: "
                     f"{formatar_percentual(resultado_pequena['variacao'])}"
                 )
             else:
-                st.caption("Compras pequenas: sem dados")
+                st.caption("Carga Fracionada: sem dados")
 
     df_temp = df_grupo.copy()
 
@@ -329,49 +329,62 @@ for grupo in GRUPOS_INSUMOS.keys():
     cols_graficos = st.columns(3)
 
     for idx, estado in enumerate(ordem_estados):
-        df_estado = df_mensal[df_mensal["ESTADO"] == estado].copy()
-
+        df_estado = df_mensal[
+            df_mensal["ESTADO"] == estado
+        ].copy()
+        
+        df_estado["PORTE_COMPRA"] = df_estado["PORTE_COMPRA"].replace({
+            "GRANDE": "Carga Completa",
+            "PEQUENA": "Carga Fracionada"
+        })
+        
         with cols_graficos[idx]:
+        
             if df_estado.empty:
-                st.markdown(f"#### {estado}")
                 st.caption("Sem dados no período")
                 continue
-
+        
             fig = px.line(
                 df_estado,
                 x="DATACOMPRA",
                 y="VALOR_NUM",
                 color="PORTE_COMPRA",
                 markers=True,
-                title=estado,
+                color_discrete_map={
+                    "Carga Completa": "#16a34a",
+                    "Carga Fracionada": "#2563eb"
+                },
                 labels={
                     "VALOR_NUM": "Preço médio ponderado (R$)",
-                    "PORTE_COMPRA": "Tipo de compra",
+                    "PORTE_COMPRA": "Tipo de carga",
                     "DATACOMPRA": "Mês"
                 }
             )
-
+        
             fig.update_xaxes(
                 tickformat="%m/%Y",
                 dtick="M1"
             )
-
+        
             fig.update_traces(
                 mode="lines+markers"
             )
-
+        
             fig.update_layout(
                 height=350,
                 showlegend=True,
                 hovermode="x unified",
-                margin=dict(l=20, r=20, t=45, b=20),
+                margin=dict(l=20, r=20, t=20, b=20),
                 yaxis_title="Preço médio ponderado (R$)",
                 xaxis_title=None,
                 yaxis=dict(range=range_y),
                 legend_title_text=None
             )
-
-            st.plotly_chart(fig, use_container_width=True)
+        
+            st.plotly_chart(
+                fig,
+                use_container_width=True
+            )
 
     mostrar_base = st.checkbox(
         f"Mostrar base usada - {grupo}",
