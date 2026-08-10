@@ -115,23 +115,52 @@ def formatar_moeda(valor):
 
 def formatar_percentual(valor):
     if pd.isna(valor):
-        return "-"
+        return "-"calcular_variacao_grupo
 
     return f"{valor:.2f}%"
+
+def calcular_media_ponderada(df):
+    df = df[
+        df["VALOR_NUM"].notna()
+        & df["PESO_TOTAL_COMPRA_KG"].notna()
+        & (df["PESO_TOTAL_COMPRA_KG"] > 0)
+    ].copy()
+
+    if df.empty:
+        return None
+
+    return (
+        (df["VALOR_NUM"] * df["PESO_TOTAL_COMPRA_KG"]).sum()
+        / df["PESO_TOTAL_COMPRA_KG"].sum()
+    )
 
 def calcular_variacao_grupo(df_grupo):
     if df_grupo.empty:
         return None
 
-    df_mensal = (
-        df_grupo
-        .groupby(pd.Grouper(key="DATACOMPRA", freq="MS"))["VALOR_NUM"]
-        .mean()
-        .reset_index()
-        .sort_values("DATACOMPRA")
+    df_grupo = df_grupo.copy()
+
+    df_grupo["MES"] = (
+        df_grupo["DATACOMPRA"]
+        .dt.to_period("M")
+        .dt.to_timestamp()
     )
 
-    df_mensal = df_mensal[df_mensal["VALOR_NUM"].notna()].copy()
+    registros = []
+
+    for mes, grupo_mes in df_grupo.groupby("MES"):
+        preco_medio = calcular_media_ponderada(grupo_mes)
+
+        if preco_medio is not None:
+            registros.append({
+                "DATACOMPRA": mes,
+                "VALOR_NUM": preco_medio
+            })
+
+    df_mensal = (
+        pd.DataFrame(registros)
+        .sort_values("DATACOMPRA")
+    )
 
     if len(df_mensal) < 2:
         return None
@@ -142,7 +171,10 @@ def calcular_variacao_grupo(df_grupo):
     if preco_inicial == 0:
         return None
 
-    variacao = ((preco_final - preco_inicial) / preco_inicial) * 100
+    variacao = (
+        (preco_final - preco_inicial)
+        / preco_inicial
+    ) * 100
 
     return {
         "preco_inicial": preco_inicial,
@@ -231,11 +263,29 @@ for grupo in GRUPOS_INSUMOS.keys():
                     </div>
                 """, unsafe_allow_html=True)
 
+    df_temp = df_grupo.copy()
+
+    df_temp["MES"] = (
+        df_temp["DATACOMPRA"]
+        .dt.to_period("M")
+        .dt.to_timestamp()
+    )
+    
+    registros_mensais = []
+    
+    for (mes, estado), grupo_mes in df_temp.groupby(["MES", "ESTADO"]):
+        preco_medio = calcular_media_ponderada(grupo_mes)
+    
+        if preco_medio is not None:
+            registros_mensais.append({
+                "DATACOMPRA": mes,
+                "ESTADO": estado,
+                "VALOR_NUM": preco_medio,
+                "PESO_TOTAL_MES_KG": grupo_mes["PESO_TOTAL_COMPRA_KG"].sum()
+            })
+    
     df_mensal = (
-        df_grupo
-        .groupby([pd.Grouper(key="DATACOMPRA", freq="MS"), "ESTADO"])["VALOR_NUM"]
-        .mean()
-        .reset_index()
+        pd.DataFrame(registros_mensais)
         .sort_values("DATACOMPRA")
     )
 
