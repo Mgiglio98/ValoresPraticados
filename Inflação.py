@@ -247,37 +247,37 @@ for grupo in GRUPOS_INSUMOS.keys():
 
         with cols_cards[idx]:
 
-        def montar_variacao(resultado, titulo):
-            if resultado is None:
+            def montar_variacao(resultado, titulo):
+                if resultado is None:
+                    return f"""
+                        <div style="margin-bottom: 8px;">
+                            <span style="font-size: 13px;">{titulo}:</span>
+                            <span style="color: #9ca3af;"> Sem dados</span>
+                        </div>
+                    """
+        
+                variacao = resultado["variacao"]
+                cor = cor_variacao(variacao)
+        
+                seta = (
+                    "↑" if variacao > 0
+                    else "↓" if variacao < 0
+                    else "→"
+                )
+        
                 return f"""
                     <div style="margin-bottom: 8px;">
                         <span style="font-size: 13px;">{titulo}:</span>
-                        <span style="color: #9ca3af;"> Sem dados</span>
+                        <span style="
+                            font-size: 23px;
+                            font-weight: 700;
+                            color: {cor};
+                            margin-left: 6px;
+                        ">
+                            {seta} {formatar_percentual(variacao)}
+                        </span>
                     </div>
                 """
-    
-            variacao = resultado["variacao"]
-            cor = cor_variacao(variacao)
-    
-            seta = (
-                "↑" if variacao > 0
-                else "↓" if variacao < 0
-                else "→"
-            )
-    
-            return f"""
-                <div style="margin-bottom: 8px;">
-                    <span style="font-size: 13px;">{titulo}:</span>
-                    <span style="
-                        font-size: 23px;
-                        font-weight: 700;
-                        color: {cor};
-                        margin-left: 6px;
-                    ">
-                        {seta} {formatar_percentual(variacao)}
-                    </span>
-                </div>
-            """
     
         html_grande = montar_variacao(
             resultado_grande,
