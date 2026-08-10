@@ -209,6 +209,41 @@ df_filtrado = df.copy()
 
 st.subheader("Análise por grupo e estado")
 
+def montar_variacao(resultado, titulo):
+    if resultado is None:
+        return f"""
+        <div style="margin-bottom: 8px;">
+            <span style="font-size: 13px;">{titulo}:</span>
+            <span style="color: #9ca3af;"> Sem dados</span>
+        </div>
+        """
+
+    variacao = resultado["variacao"]
+
+    if variacao > 0:
+        cor = "#16a34a"
+        seta = "↑"
+    elif variacao < 0:
+        cor = "#dc2626"
+        seta = "↓"
+    else:
+        cor = "#9ca3af"
+        seta = "→"
+
+    return f"""
+    <div style="margin-bottom: 8px;">
+        <span style="font-size: 13px;">{titulo}:</span>
+        <span style="
+            font-size: 23px;
+            font-weight: 700;
+            color: {cor};
+            margin-left: 6px;
+        ">
+            {seta} {formatar_percentual(variacao)}
+        </span>
+    </div>
+    """
+
 def cor_variacao(valor):
     if valor > 0:
         return "#16a34a"
