@@ -196,7 +196,7 @@ data_min_periodo = data_max - pd.DateOffset(years=1)
 
 df = df[df["DATACOMPRA"] >= data_min_periodo].copy()
 
-df = df[df["PORTE_COMPRA"] == "GRANDE"].copy()
+#df = df[df["PORTE_COMPRA"] == "GRANDE"].copy()
 
 st.title("Inflação de Insumos - Suprimentos")
 
@@ -230,38 +230,83 @@ for grupo in GRUPOS_INSUMOS.keys():
     cols_cards = st.columns(3)
 
     for idx, estado in enumerate(ordem_estados):
-        df_grupo_estado = df_grupo[df_grupo["ESTADO"] == estado].copy()
-        resultado = calcular_variacao_grupo(df_grupo_estado)
+        df_grupo_estado = df_grupo[
+            df_grupo["ESTADO"] == estado
+        ].copy()
+    
+        df_grande = df_grupo_estado[
+            df_grupo_estado["PORTE_COMPRA"] == "GRANDE"
+        ].copy()
+    
+        df_pequena = df_grupo_estado[
+            df_grupo_estado["PORTE_COMPRA"] == "PEQUENA"
+        ].copy()
+    
+        resultado_grande = calcular_variacao_grupo(df_grande)
+        resultado_pequena = calcular_variacao_grupo(df_pequena)
 
         with cols_cards[idx]:
-            if df_grupo_estado.empty or resultado is None:
-                st.markdown(f"""
-                    <div style="padding: 10px 0;">
-                        <div style="font-size: 14px;">{estado}</div>
-                        <div style="font-size: 24px; font-weight: 600; color: #9ca3af;">Sem dados</div>
-                    </div>
-                """, unsafe_allow_html=True)
-            else:
-                variacao = resultado["variacao"]
-                cor = cor_variacao(variacao)
-                seta = "↑" if variacao > 0 else "↓" if variacao < 0 else "→"
 
-                st.markdown(f"""
-                    <div style="padding: 10px 0 20px 0;">
-                        <div style="font-size: 14px; margin-bottom: 6px;">{estado}</div>
-                        <div style="
-                            display: inline-flex;
-                            align-items: center;
-                            gap: 8px;
-                            font-size: 32px;
-                            font-weight: 700;
-                            color: {cor};
-                        ">
-                            <span>{seta}</span>
-                            <span>{formatar_percentual(variacao)}</span>
-                        </div>
+        def montar_variacao(resultado, titulo):
+            if resultado is None:
+                return f"""
+                    <div style="margin-bottom: 8px;">
+                        <span style="font-size: 13px;">{titulo}:</span>
+                        <span style="color: #9ca3af;"> Sem dados</span>
                     </div>
-                """, unsafe_allow_html=True)
+                """
+    
+            variacao = resultado["variacao"]
+            cor = cor_variacao(variacao)
+    
+            seta = (
+                "↑" if variacao > 0
+                else "↓" if variacao < 0
+                else "→"
+            )
+    
+            return f"""
+                <div style="margin-bottom: 8px;">
+                    <span style="font-size: 13px;">{titulo}:</span>
+                    <span style="
+                        font-size: 23px;
+                        font-weight: 700;
+                        color: {cor};
+                        margin-left: 6px;
+                    ">
+                        {seta} {formatar_percentual(variacao)}
+                    </span>
+                </div>
+            """
+    
+        html_grande = montar_variacao(
+            resultado_grande,
+            "Compras grandes"
+        )
+    
+        html_pequena = montar_variacao(
+            resultado_pequena,
+            "Compras pequenas"
+        )
+    
+        st.markdown(
+            f"""
+            <div style="padding: 10px 0 20px 0;">
+                <div style="
+                    font-size: 14px;
+                    font-weight: 600;
+                    margin-bottom: 10px;
+                ">
+                    {estado}
+                </div>
+    
+                {html_grande}
+                {html_pequena}
+    
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     df_temp = df_grupo.copy()
 
@@ -273,22 +318,27 @@ for grupo in GRUPOS_INSUMOS.keys():
     
     registros_mensais = []
     
-    for (mes, estado), grupo_mes in df_temp.groupby(["MES", "ESTADO"]):
+    for (mes, estado, porte), grupo_mes in df_temp.groupby(
+        ["MES", "ESTADO", "PORTE_COMPRA"]
+    ):
         preco_medio = calcular_media_ponderada(grupo_mes)
     
         if preco_medio is not None:
             registros_mensais.append({
                 "DATACOMPRA": mes,
                 "ESTADO": estado,
+                "PORTE_COMPRA": porte,
                 "VALOR_NUM": preco_medio,
-                "PESO_TOTAL_MES_KG": grupo_mes["PESO_TOTAL_COMPRA_KG"].sum()
+                "PESO_TOTAL_MES_KG": grupo_mes[
+                    "PESO_TOTAL_COMPRA_KG"
+                ].sum()
             })
     
     df_mensal = (
         pd.DataFrame(registros_mensais)
         .sort_values("DATACOMPRA")
     )
-
+    
     y_min = df_mensal["VALOR_NUM"].min()
     y_max = df_mensal["VALOR_NUM"].max()
     
@@ -314,9 +364,14 @@ for grupo in GRUPOS_INSUMOS.keys():
                 df_estado,
                 x="DATACOMPRA",
                 y="VALOR_NUM",
+                color="PORTE_COMPRA",
                 markers=True,
-                text=df_estado["VALOR_NUM"].apply(lambda x: f"{x:.2f}"),
-                title=estado
+                title=estado,
+                labels={
+                    "VALOR_NUM": "Preço médio ponderado (R$)",
+                    "PORTE_COMPRA": "Tipo de compra",
+                    "DATACOMPRA": "Mês"
+                }
             )
 
             fig.update_xaxes(
@@ -325,19 +380,18 @@ for grupo in GRUPOS_INSUMOS.keys():
             )
 
             fig.update_traces(
-                mode="lines+markers+text",
-                textposition="top center",
-                textfont=dict(size=9)
+                mode="lines+markers"
             )
 
             fig.update_layout(
-                height=330,
-                showlegend=False,
+                height=350,
+                showlegend=True,
                 hovermode="x unified",
                 margin=dict(l=20, r=20, t=45, b=20),
-                yaxis_title="Preço médio (R$)",
+                yaxis_title="Preço médio ponderado (R$)",
                 xaxis_title=None,
-                yaxis=dict(range=range_y)
+                yaxis=dict(range=range_y),
+                legend_title_text=None
             )
 
             st.plotly_chart(fig, use_container_width=True)
