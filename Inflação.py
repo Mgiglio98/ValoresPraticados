@@ -115,7 +115,7 @@ def formatar_moeda(valor):
 
 def formatar_percentual(valor):
     if pd.isna(valor):
-        return "-"calcular_variacao_grupo
+        return "-"
 
     return f"{valor:.2f}%"
 
