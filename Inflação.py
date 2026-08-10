@@ -26,6 +26,17 @@ GRUPOS_INSUMOS = {
     ]
 }
 
+PESO_UNITARIO_KG = {
+    "J.02.0001": 50,      # Argamassa - saco 50 kg
+    "J.03.0015": 20,      # Areia - saco 20 kg
+    "J.01.0016": 20,      # Brita - saco 20 kg
+    "J.05.0001": 50,      # Cimento - saco 50 kg
+    "J.02.2000": 50,      # Votomassa - saco 50 kg
+
+    "H.11.0034": 7.404,   # Aço 10mm - vara
+    "H.11.0024": 1,       # Aço já comprado em KG
+}
+
 def carregar_base():
     base_path = Path(__file__).parent / "ValoresPraticados.xlsx"
 
@@ -50,6 +61,12 @@ def carregar_base():
     df["FORNECEDOR"] = df["FORNECEDOR"].astype(str).str.strip()    
     df["EMPREENDIMENTO"] = df["EMPREENDIMENTO"].astype(str).str.strip()
 
+    df["QUANTIDADE_NUM"] = pd.to_numeric(df["QUANTIDADE"], errors="coerce")
+    
+    df["PESO_UNITARIO_KG"] = df["INSUMOCDG"].map(PESO_UNITARIO_KG)
+    
+    df["PESO_TOTAL_COMPRA_KG"] = (df["QUANTIDADE_NUM"] * df["PESO_UNITARIO_KG"])
+
     df.loc[df["INSUMOCDG"] == "H.11.0034", "VALOR_NUM"] /= 7.404
 
     df = df[df["DATACOMPRA"].notna()].copy()
@@ -58,6 +75,28 @@ def carregar_base():
     df = df[~df["EMPREENDIMENTO"].isin(["2514", "9992"])].copy()
 
     return df
+    
+def classificar_porte_compra(row):
+    if pd.isna(row["PESO_TOTAL_COMPRA_KG"]):
+        return "SEM CLASSIFICAÇÃO"
+
+    limites = {
+        "Aço": 3000,
+        "Argamassa": 2000,
+        "Brita": 2000,
+        "Areia": 2000,
+        "Cimento": 2000,
+    }
+
+    limite = limites.get(row["GRUPO"])
+
+    if limite is None:
+        return "SEM CLASSIFICAÇÃO"
+
+    if row["PESO_TOTAL_COMPRA_KG"] >= limite:
+        return "GRANDE"
+
+    return "PEQUENA"
 
 def classificar_grupo(codigo):
     codigo = str(codigo).strip().upper()
@@ -118,10 +157,14 @@ df = carregar_base()
 df["GRUPO"] = df["INSUMOCDG"].apply(classificar_grupo)
 df = df[df["GRUPO"].notna()].copy()
 
+df["PORTE_COMPRA"] = df.apply(classificar_porte_compra, axis=1)
+
 data_max = df["DATACOMPRA"].max()
 data_min_periodo = data_max - pd.DateOffset(years=1)
 
 df = df[df["DATACOMPRA"] >= data_min_periodo].copy()
+
+df = df[df["PORTE_COMPRA"] == "GRANDE"].copy()
 
 st.title("Inflação de Insumos - Suprimentos")
 
@@ -268,7 +311,11 @@ for grupo in GRUPOS_INSUMOS.keys():
             "DATACOMPRA": "Data da Compra",
             "ESTADO": "Estado",
             "FORNECEDOR": "Fornecedor",
-            "GRUPO": "Grupo"
+            "GRUPO": "Grupo",
+            "QUANTIDADE_NUM": "Quantidade",
+            "PESO_UNITARIO_KG": "Peso Unitário (kg)",
+            "PESO_TOTAL_COMPRA_KG": "Peso Total (kg)",
+            "PORTE_COMPRA": "Porte da Compra"
         })
 
         colunas_exibir = [
@@ -277,6 +324,10 @@ for grupo in GRUPOS_INSUMOS.keys():
             "Insumo",
             "Preço de Compra",
             "Unidade",
+            "Quantidade",
+            "Peso Unitário (kg)",
+            "Peso Total (kg)",
+            "Porte da Compra",
             "Data da Compra",
             "Estado",
             "Fornecedor"
