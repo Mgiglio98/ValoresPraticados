@@ -157,16 +157,25 @@ def calcular_variacao_grupo(df_grupo):
                 "VALOR_NUM": preco_medio
             })
 
-    df_mensal = (
-        pd.DataFrame(registros)
-        .sort_values("DATACOMPRA")
-    )
+    # Se nenhum mês conseguiu gerar média ponderada
+    if not registros:
+        return None
+
+    df_mensal = pd.DataFrame(registros)
+
+    if "DATACOMPRA" not in df_mensal.columns:
+        return None
+
+    df_mensal = df_mensal.sort_values("DATACOMPRA")
 
     if len(df_mensal) < 2:
         return None
 
     preco_inicial = df_mensal["VALOR_NUM"].iloc[0]
     preco_final = df_mensal["VALOR_NUM"].iloc[-1]
+
+    if pd.isna(preco_inicial) or pd.isna(preco_final):
+        return None
 
     if preco_inicial == 0:
         return None
@@ -291,10 +300,21 @@ for grupo in GRUPOS_INSUMOS.keys():
                 ].sum()
             })
     
-    df_mensal = (
-        pd.DataFrame(registros_mensais)
-        .sort_values("DATACOMPRA")
-    )
+    if registros_mensais:
+        df_mensal = (
+            pd.DataFrame(registros_mensais)
+            .sort_values("DATACOMPRA")
+        )
+    else:
+        df_mensal = pd.DataFrame(
+            columns=[
+                "DATACOMPRA",
+                "ESTADO",
+                "PORTE_COMPRA",
+                "VALOR_NUM",
+                "PESO_TOTAL_MES_KG"
+            ]
+        )
     
     y_min = df_mensal["VALOR_NUM"].min()
     y_max = df_mensal["VALOR_NUM"].max()
