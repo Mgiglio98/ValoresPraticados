@@ -72,6 +72,17 @@ def carregar_base():
     df = df[df["DATACOMPRA"].notna()].copy()
     df = df[df["VALOR_NUM"].notna()].copy()
 
+    df["EMPREENDIMENTO"] = (
+        df["EMPREENDIMENTO"]
+        .astype(str)
+        .str.strip()
+        .str.replace(r"\.0$", "", regex=True)
+    )
+    
+    df = df[
+        ~df["EMPREENDIMENTO"].isin(["2514", "9992"])
+    ].copy()
+
     df = df[~df["EMPREENDIMENTO"].isin(["2514", "9992"])].copy()
 
     return df
