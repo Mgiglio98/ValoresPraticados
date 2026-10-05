@@ -38,7 +38,7 @@ PESO_UNITARIO_KG = {
 }
 
 def carregar_base():
-    base_path = Path(__file__).parent / "ValoresPraticados.xlsx"
+    base_path = Path(__file__).parent / "BaseInflação.xlsx"
 
     df = pd.read_excel(base_path, sheet_name=0)
     df.columns = [col.strip() for col in df.columns]
